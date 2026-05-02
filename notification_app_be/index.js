@@ -76,9 +76,17 @@ app.get('/api/notifications', async (req, res) => {
 app.get('/api/priority-notifications', async (req, res) => {
   if (Log) Log('backend', 'info', 'api', 'received request for priority notifications');
   try {
-    const response = await makeApiRequest(`${EVAL_SERVICE_URL}/notifications`, { params: { limit: 100, page: 1 } });
+    // Fetch multiple pages since external API enforces max limit=10
+    const promises = [1, 2, 3, 4, 5].map(p => 
+      makeApiRequest(`${EVAL_SERVICE_URL}/notifications`, { params: { limit: 10, page: p } })
+    );
+    const responses = await Promise.all(promises);
     
-    const items = Array.isArray(response.data) ? response.data : (response.data.notifications || response.data.data || []);
+    let items = [];
+    responses.forEach(r => {
+      const dataItems = Array.isArray(r.data) ? r.data : (r.data.notifications || r.data.data || []);
+      items = items.concat(dataItems);
+    });
     
     const topN = parseInt(req.query.n, 10) || 5;
     if (Log) Log('backend', 'info', 'handler', 'computing top n notifications via min heap');
@@ -88,7 +96,7 @@ app.get('/api/priority-notifications', async (req, res) => {
     res.json(prioritized);
   } catch (error) {
     if (Log) Log('backend', 'error', 'api', 'failed to fetch priority notifications');
-    res.status(500).json({ error: 'Failed to fetch priority notifications' });
+    res.status(500).json({ error: error.message, data: error.response?.data, stack: error.stack });
   }
 });
 
