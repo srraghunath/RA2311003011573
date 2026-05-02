@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, CircularProgress, TextField } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Slider } from '@mui/material';
 import { fetchPriorityNotifications } from '../api';
 import NotificationItem from '../components/NotificationItem';
 import { Log } from 'logging_middleware/logger';
@@ -51,25 +51,34 @@ const PriorityNotifications = () => {
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} gap={2} mb={4} sx={{ borderBottom: '1px solid rgba(255,255,255,0.08)', pb: 2 }}>
-        <Typography variant="h4" component="h1" sx={{ background: 'linear-gradient(90deg, #f9fafb 0%, #9ca3af 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <Typography variant="h4" component="h1" sx={{ background: 'linear-gradient(90deg, #f9fafb 0%, #9ca3af 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', minWidth: '250px' }}>
           Priority Overview
         </Typography>
-        <TextField 
-          label="Top N Results" 
-          type="number" 
-          value={topN} 
-          onChange={handleTopNChange} 
-          inputProps={{ min: 1 }}
-          size="small"
-          variant="outlined"
-          sx={{ 
-            width: { xs: '100%', sm: 130 },
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              backgroundColor: 'rgba(255,255,255,0.03)'
-            }
-          }}
-        />
+        
+        <Box sx={{ width: { xs: '100%', sm: 300 }, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+            Top {topN} Results
+          </Typography>
+          <Slider
+            value={topN}
+            onChange={(e, val) => {
+              setTopN(val);
+              Log('frontend', 'info', 'component', `changed top N slider to ${val}`);
+            }}
+            min={1}
+            max={50}
+            step={1}
+            valueLabelDisplay="auto"
+            sx={{
+              color: '#ec4899',
+              '& .MuiSlider-thumb': {
+                '&:hover, &.Mui-focusVisible': {
+                  boxShadow: '0px 0px 0px 8px rgba(236, 72, 153, 0.16)',
+                },
+              },
+            }}
+          />
+        </Box>
       </Box>
 
       {loading ? (
