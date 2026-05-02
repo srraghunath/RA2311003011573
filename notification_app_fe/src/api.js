@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Log } from 'logging_middleware/logger';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5005/api';
 
 export const fetchNotifications = async (limit = 10, page = 1, type = '') => {
   Log('frontend', 'info', 'api', 'fetching notifications');

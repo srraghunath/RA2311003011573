@@ -7,13 +7,19 @@ const NotificationItem = ({ notification, onMarkViewed }) => {
   // Assuming the API might return 'is_read' or 'viewed'. For demo purposes, we rely on parent state.
   const isViewed = notification.isViewed; 
 
+  const type = notification.notification_type || notification.type || notification.Type;
+  const timestamp = notification.timestamp || notification.created_at || notification.Timestamp || Date.now();
+  const message = notification.message || notification.description || notification.Message || '';
+  const title = notification.title || notification.Title || 'Notification';
+  const id = notification.id || notification._id || notification.ID;
+
   const handleView = () => {
     Log('frontend', 'info', 'component', `marked notification as viewed`);
-    onMarkViewed(notification.id || notification._id);
+    onMarkViewed(id);
   };
 
-  const getChipColor = (type) => {
-    switch (type?.toLowerCase()) {
+  const getChipColor = (t) => {
+    switch (t?.toLowerCase()) {
       case 'placement': return 'success';
       case 'result': return 'info';
       case 'event': return 'warning';
@@ -36,19 +42,19 @@ const NotificationItem = ({ notification, onMarkViewed }) => {
       <CardContent>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
           <Chip 
-            label={notification.notification_type || notification.type} 
-            color={getChipColor(notification.notification_type || notification.type)} 
+            label={type} 
+            color={getChipColor(type)} 
             size="small" 
           />
           <Typography variant="caption" color="text.secondary">
-            {new Date(notification.timestamp || notification.created_at || Date.now()).toLocaleString()}
+            {new Date(timestamp).toLocaleString()}
           </Typography>
         </Box>
         <Typography variant="h6" component="div" sx={{ fontWeight: isViewed ? 'normal' : 'bold' }}>
-          {notification.title || 'Notification'}
+          {title}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {notification.message || notification.description || ''}
+          {message}
         </Typography>
         
         {!isViewed && (

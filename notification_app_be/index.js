@@ -4,40 +4,67 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const { getTopNNotifications } = require('./priorityLogic');
 
-// Assuming logger.js is compatible with CommonJS or we use dynamic import.
-// Since it's an ES module in our current setup (using `export`), let's just make it CommonJS compatible or fetch it.
-// The prompt says "logging_middleware/logger.js"
-// Actually, since React frontend uses it, it's better if it's imported correctly.
-// Let's rewrite logger.js to be universally compatible or just import it cleanly.
-// Since logger.js uses `export const`, Node.js might complain if package.json type isn't module.
-// We can use a dynamic import.
-
-dotenv.config({ path: '../notification_app_fe/.env' }); // Reusing the same .env for simplicity
+dotenv.config({ path: '../notification_app_fe/.env' });
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const EVAL_SERVICE_URL = 'http://20.207.122.201/evaluation-service';
-const TOKEN = process.env.ACCESS_TOKEN || process.env.REACT_APP_ACCESS_TOKEN;
+let TOKEN = process.env.ACCESS_TOKEN || process.env.REACT_APP_ACCESS_TOKEN;
 
-// Dynamic import of ES Module logger
 let Log = null;
 let setToken = null;
 (async () => {
-  const logger = await import('../../logging_middleware/logger.js');
+  const logger = await import('../logging_middleware/logger.js');
   Log = logger.Log;
   setToken = logger.setToken;
   setToken(TOKEN);
 })();
 
+const refreshTokenIfNeeded = async (error) => {
+  if (error.response && error.response.status === 401) {
+    if (Log) Log('backend', 'warn', 'auth', 'token expired. attempting to refresh');
+    try {
+      const payloadString = Buffer.from(TOKEN.split('.')[1], 'base64').toString('utf8');
+      const payload = JSON.parse(payloadString);
+      
+      const authRes = await axios.post(`${EVAL_SERVICE_URL}/auth`, {
+        clientID: process.env.CLIENT_ID || payload.clientID,
+        clientSecret: process.env.CLIENT_SECRET || payload.clientSecret,
+        email: payload.email,
+        name: payload.name,
+        rollNo: payload.rollNo,
+        accessCode: payload.accessCode
+      });
+      
+      TOKEN = authRes.data.access_token;
+      setToken(TOKEN);
+      if (Log) Log('backend', 'info', 'auth', 'token successfully refreshed');
+      return true;
+    } catch (refreshErr) {
+      if (Log) Log('backend', 'fatal', 'auth', 'failed to refresh token');
+      return false;
+    }
+  }
+  return false;
+};
+
+const makeApiRequest = async (url, config, attempt = 1) => {
+  try {
+    return await axios.get(url, { ...config, headers: { Authorization: `Bearer ${TOKEN}` } });
+  } catch (error) {
+    if (attempt === 1 && await refreshTokenIfNeeded(error)) {
+      return await makeApiRequest(url, config, 2);
+    }
+    throw error;
+  }
+};
+
 app.get('/api/notifications', async (req, res) => {
   if (Log) Log('backend', 'info', 'api', 'received request for all notifications');
   try {
-    const response = await axios.get(`${EVAL_SERVICE_URL}/notifications`, {
-      params: req.query,
-      headers: { Authorization: `Bearer ${TOKEN}` }
-    });
+    const response = await makeApiRequest(`${EVAL_SERVICE_URL}/notifications`, { params: req.query });
     if (Log) Log('backend', 'info', 'api', 'successfully fetched notifications from eval service');
     res.json(response.data);
   } catch (error) {
@@ -49,11 +76,7 @@ app.get('/api/notifications', async (req, res) => {
 app.get('/api/priority-notifications', async (req, res) => {
   if (Log) Log('backend', 'info', 'api', 'received request for priority notifications');
   try {
-    // Fetch a large subset or all
-    const response = await axios.get(`${EVAL_SERVICE_URL}/notifications`, {
-      params: { limit: 100, page: 1 }, 
-      headers: { Authorization: `Bearer ${TOKEN}` }
-    });
+    const response = await makeApiRequest(`${EVAL_SERVICE_URL}/notifications`, { params: { limit: 100, page: 1 } });
     
     const items = Array.isArray(response.data) ? response.data : (response.data.notifications || response.data.data || []);
     
@@ -69,7 +92,7 @@ app.get('/api/priority-notifications', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5005;
 app.listen(PORT, () => {
   // Silent startup
 });

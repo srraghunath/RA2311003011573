@@ -14,15 +14,15 @@ class MinHeap {
 
   // Returns positive if a > b (a is higher priority)
   compare(a, b) {
-    const scoreA = this.getPriorityScore(a.notification_type || a.type);
-    const scoreB = this.getPriorityScore(b.notification_type || b.type);
+    const scoreA = this.getPriorityScore(a.notification_type || a.type || a.Type);
+    const scoreB = this.getPriorityScore(b.notification_type || b.type || b.Type);
 
     if (scoreA !== scoreB) {
       return scoreA - scoreB; 
     }
 
-    const timeA = new Date(a.timestamp || a.created_at).getTime();
-    const timeB = new Date(b.timestamp || b.created_at).getTime();
+    const timeA = new Date(a.timestamp || a.created_at || a.Timestamp).getTime();
+    const timeB = new Date(b.timestamp || b.created_at || b.Timestamp).getTime();
     return timeA - timeB;
   }
 
