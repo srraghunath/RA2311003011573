@@ -31,35 +31,68 @@ const NotificationItem = ({ notification, onMarkViewed }) => {
     <Card 
       sx={{ 
         mb: 2, 
-        borderLeft: isViewed ? '4px solid #ccc' : '4px solid #1976d2',
-        backgroundColor: isViewed ? '#f9f9f9' : '#ffffff',
-        transition: '0.3s',
+        backgroundColor: 'background.paper',
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: isViewed ? 0.7 : 1,
+        transform: isViewed ? 'scale(0.99)' : 'scale(1)',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          height: '100%',
+          width: '4px',
+          background: isViewed ? 'rgba(255,255,255,0.1)' : `linear-gradient(180deg, ${type?.toLowerCase() === 'placement' ? '#34d399, #10b981' : type?.toLowerCase() === 'result' ? '#60a5fa, #3b82f6' : '#fbbf24, #f59e0b'})`,
+        },
         '&:hover': {
-          boxShadow: 3
+          transform: 'translateY(-4px)',
+          boxShadow: '0 12px 24px -10px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255,255,255,0.05)',
+          borderColor: 'rgba(255, 255, 255, 0.15)',
         }
       }}
     >
-      <CardContent>
+      <CardContent sx={{ pl: 4 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
           <Chip 
             label={type} 
-            color={getChipColor(type)} 
             size="small" 
+            sx={{ 
+              backgroundColor: type?.toLowerCase() === 'placement' ? 'rgba(16, 185, 129, 0.15)' : type?.toLowerCase() === 'result' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+              color: type?.toLowerCase() === 'placement' ? '#34d399' : type?.toLowerCase() === 'result' ? '#60a5fa' : '#fbbf24',
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              fontSize: '0.7rem'
+            }}
           />
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.8 }}>
             {new Date(timestamp).toLocaleString()}
           </Typography>
         </Box>
-        <Typography variant="h6" component="div" sx={{ fontWeight: isViewed ? 'normal' : 'bold' }}>
+        <Typography variant="h6" component="div" sx={{ fontWeight: isViewed ? 500 : 700, color: isViewed ? 'text.secondary' : 'text.primary', mb: 1 }}>
           {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, lineHeight: 1.6 }}>
           {message}
         </Typography>
         
         {!isViewed && (
-          <Box mt={2} display="flex" justifyContent="flex-end">
-            <Button size="small" onClick={handleView} variant="outlined">
+          <Box mt={3} display="flex" justifyContent="flex-end">
+            <Button 
+              variant="contained" 
+              size="small" 
+              onClick={handleView}
+              sx={{ 
+                background: 'linear-gradient(45deg, #6366f1, #8b5cf6)',
+                boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.39)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #4f46e5, #7c3aed)',
+                  boxShadow: '0 6px 20px rgba(99, 102, 241, 0.23)',
+                }
+              }}
+            >
               Mark as Viewed
             </Button>
           </Box>

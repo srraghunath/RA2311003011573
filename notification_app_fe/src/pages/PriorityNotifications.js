@@ -50,18 +50,25 @@ const PriorityNotifications = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} gap={2} mb={3}>
-        <Typography variant="h4" component="h1">
-          Priority Notifications
+      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} gap={2} mb={4} sx={{ borderBottom: '1px solid rgba(255,255,255,0.08)', pb: 2 }}>
+        <Typography variant="h4" component="h1" sx={{ background: 'linear-gradient(90deg, #f9fafb 0%, #9ca3af 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Priority Overview
         </Typography>
         <TextField 
-          label="Top N" 
+          label="Top N Results" 
           type="number" 
           value={topN} 
           onChange={handleTopNChange} 
           inputProps={{ min: 1 }}
           size="small"
-          sx={{ width: { xs: '100%', sm: 100 } }}
+          variant="outlined"
+          sx={{ 
+            width: { xs: '100%', sm: 130 },
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+              backgroundColor: 'rgba(255,255,255,0.03)'
+            }
+          }}
         />
       </Box>
 
